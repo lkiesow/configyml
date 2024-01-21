@@ -3,8 +3,8 @@ requires = ['setuptools >= 61.0']
 build-backend = 'setuptools.build_meta'
 
 [project]
-name = 'configyml'
-version = '0.0.1'
+name = 'confygure'
+version = '0.0.2'
 authors = [
     {name = 'Lars Kiesow', email = 'lkiesow@uos.de'}
 ]
@@ -17,5 +17,5 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = 'https://github.com/lkiesow/configyml'
-Repository = 'https://github.com/lkiesow/configyml'
+Homepage = 'https://github.com/lkiesow/confygure'
+Repository = 'https://github.com/lkiesow/confygure'

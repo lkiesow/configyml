@@ -1,9 +1,9 @@
-# configyml: A simple YAML based configuration library for Python
+# confygure: A simple YAML based configuration library for Python
 
 ## Install
 
 ```sh
-❯ pip install configyml
+❯ pip install confygure
 ```
 
 ## Usage
@@ -16,10 +16,10 @@ Given the `config.yml`:
 test: some value
 ```
 
-You can use `configyml` like this:
+You can use `confygure` like this:
 
 ```python
->>> from configyml import config
+>>> from confygure import config
 >>> config('test')
 'some value'
 ```
@@ -40,7 +40,7 @@ To load this custom configuration file and set the location of the log level
 config, use something like this:
 
 ```python
->>> from configyml import setup, config
+>>> from confygure import setup, config
 >>> setup(files=('./example.yml', '~/example.yml'),
 ...       logger=('logger', 'loglevel'))
 >>> config()
