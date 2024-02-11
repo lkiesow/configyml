@@ -29,8 +29,10 @@ jobs:
 
     - run: pip install -r requirements.txt
 
-    - run: pip install flake8 bandit
+    - run: pip install flake8 bandit pyright
 
     - run: flake8 confygure
 
     - run: bandit -r confygure
+
+    - run: pyright confygure

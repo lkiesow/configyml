@@ -3,13 +3,12 @@ import logging.config
 import os
 import yaml
 
-from typing import Optional
+from typing import Optional, Type, TypeVar
 
+T = TypeVar('T')
 __config = {}
-__setup = {
-        'configure_logger': (),
-        'config_files': ['config.yml']
-        }
+__setup_configure_logger: list[str] = []
+__setup_config_files: list[str] = ['config.yml']
 
 
 def setup(files: Optional[list] = None, logger: Optional[list] = None):
@@ -21,22 +20,23 @@ def setup(files: Optional[list] = None, logger: Optional[list] = None):
     :param logger: Tuple or list specifying the patch to a log level
                    configuration for the root logger.
     '''
+    global __setup_config_files
+    global __setup_configure_logger
     if files is not None:
         if type(files) not in (list, tuple):
             raise Exception('Configuration files must be a tuple or list')
-        __setup['config_files'] = [os.path.expanduser(f) for f in files]
+        __setup_config_files = [os.path.expanduser(f) for f in files]
     if logger is not None:
-        __setup['configure_logger'] = logger
-    return __setup
+        __setup_configure_logger = logger
 
 
-def configuration_file():
+def configuration_file() -> Optional[str]:
     '''Find the best match for the configuration file.  The configuration file
     locations taken into consideration can be configured using `setup()`.
 
     :return: configuration file name or None
     '''
-    for filename in __setup['config_files']:
+    for filename in __setup_config_files:
         if os.path.isfile(filename):
             return filename
 
@@ -54,29 +54,67 @@ def update_configuration(filename: Optional[str] = None):
     globals()['__config'] = cfg
 
     # update logger
-    logger_config = __setup['configure_logger']
+    logger_config = __setup_configure_logger
     if logger_config:
-        loglevel = (config(*logger_config) or 'INFO').upper()
+        loglevel = (config_t(str, *logger_config) or 'INFO').upper()
         logging.root.setLevel(loglevel)
         logging.info('Updated configuration from %s', cfgfile)
         logging.info('Log level set to %s', loglevel)
-
     return cfg
 
 
-def config(*args, allow_empty=True):
-    '''Get a specific configuration value or the whole configuration, loading
-    the configuration file if it was not before.
+def config(*args):
+    '''Get a specific configuration value.
+    This will load the configuration file if necessary.
 
-    :param key: optional configuration key to return
-    :type key: string
-    :return: dictionary containing the configuration or configuration value
+    :return: The configuration value
     '''
     cfg = __config or update_configuration()
     for key in args:
         if cfg is None:
-            if allow_empty:
-                return
-            raise KeyError(f'Missing configuration key {args}')
+            return
         cfg = cfg.get(key)
+    return cfg
+
+
+def config_t(type_: Type[T], *args: str) -> Optional[T]:
+    '''Get a specific configuration value or the whole configuration.
+    The value type is checked against the provided type.
+    A None value is allowed.
+    A TypeError is raised if the check fails.
+    This will load the configuration file if necessary.
+
+    Note: This will only work for simple types like `int` or `str`.
+    Complex type specifications like `dict[str, int]` will not work.
+
+    :param type_: The type to check for
+    :return: Configuration value
+    :raises: TypeError if configuration value does not match
+    '''
+    if type_ and not isinstance(type_, type):
+        raise TypeError('verify_type must by a type')
+    cfg = config(*args)
+    if cfg is not None and not isinstance(cfg, type_):
+        raise TypeError(f'Value has unexpected type {type(cfg)}')
+    return cfg
+
+
+def config_rt(type_: Type[T], *args: str) -> T:
+    '''Get a specific configuration value or the whole configuration.
+    The value type is checked against the provided type.
+    A TypeError is raised if the check fails.
+    The configuration value is required. A None value will raise a KeyError.
+    This will load the configuration file if necessary.
+
+    Note: This will only work for simple types like `int` or `str`.
+    Complex type specifications like `dict[str, int]` will not work.
+
+    :param type_: The type to check for
+    :return: Configuration value
+    :raises: TypeError if configuration value does not match
+    :raises: KeyError if the requested configuration value does not exist
+    '''
+    cfg = config_t(type_, *args)
+    if cfg is None:
+        raise KeyError(f'Missing configuration key {args}')
     return cfg
