@@ -3,6 +3,8 @@ import logging.config
 import os
 import yaml
 
+from typing import Optional
+
 __config = {}
 __setup = {
         'configure_logger': (),
@@ -10,7 +12,7 @@ __setup = {
         }
 
 
-def setup(files: tuple | list | None = None, logger: tuple | None = None):
+def setup(files: Optional[list] = None, logger: Optional[list] = None):
     '''Configure confygure.
 
     :param files: Tuple or list of configuration files. The first file that
@@ -39,7 +41,7 @@ def configuration_file():
             return filename
 
 
-def update_configuration(filename: str | None = None):
+def update_configuration(filename: Optional[str] = None):
     '''Update configuration from file.
     If no filename is specified, the best match from the files configured via
     `setup()` is being used.
